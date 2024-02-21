@@ -24,11 +24,6 @@ export class Job {
   endTime: Date;
 
   getCost(): number {
-    console.log({
-      startTime: this.startTime,
-      endTime: this.endTime,
-      rate: this.rate,
-    });
     if (!this.startTime || !this.endTime) {
       return 0;
     }

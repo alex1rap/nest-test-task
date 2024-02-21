@@ -5,7 +5,6 @@ import { validate } from 'class-validator';
 @Injectable()
 export class ValidationPipe implements PipeTransform {
   async transform(value: any, metadata: ArgumentMetadata) {
-    console.log({ value, metadata });
     const object = plainToInstance(metadata.metatype, value);
     const errors = await validate(object);
     if (errors.length > 0) {
