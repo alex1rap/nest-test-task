@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
+import { JobFilterDto } from './dto/job-filter.dto';
 
 @Controller('jobs')
 export class JobsController {
@@ -14,8 +15,8 @@ export class JobsController {
   }
 
   @Get()
-  async findAll() {
-    return this.jobsService.findAll();
+  async findAll(@Query() jobFilterDto: JobFilterDto) {
+    return this.jobsService.findAll(jobFilterDto);
   }
 
   @Get(':id')

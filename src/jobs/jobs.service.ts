@@ -5,6 +5,7 @@ import { Between, EntityManager } from 'typeorm';
 import { TasksService } from '../tasks/tasks.service';
 import { Job } from './entities/job.entity';
 import { UsersService } from '../users/users.service';
+import { JobFilterDto } from './dto/job-filter.dto';
 
 
 @Injectable()
@@ -63,9 +64,17 @@ export class JobsService {
     });
   }
 
-  async findAll() {
+  async findAll(params: JobFilterDto) {
     // @ts-ignore
     return await this.entityManager.find(Job, {
+      where: params ? {
+        user: {
+          id: params.userId,
+        },
+        task: {
+          id: params.taskId,
+        },
+      } : undefined,
       relations: ['task', 'user'],
       order: {
         startTime: 'DESC',

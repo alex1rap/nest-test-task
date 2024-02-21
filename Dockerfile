@@ -15,4 +15,4 @@ RUN yarn install
 COPY . .
 
 # Виконуємо команду для запуску додатку
-CMD ["yarn", "start:dev"]
+CMD ["yarn", "start"]
