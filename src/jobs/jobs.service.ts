@@ -39,7 +39,9 @@ export class JobsService {
     job.task = task;
     job.user = user;
     await this.entityManager.save(job);
-    return job;
+    return {
+      usedCostInPercentage: Math.round(task.costUsed + job.getCost() / task.cost * 100),
+    };
   }
 
   async loadExistingJobAtThisTime({ userId, startTime, endTime }) {
