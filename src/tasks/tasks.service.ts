@@ -29,7 +29,7 @@ export class TasksService {
       .select('t.*, ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate))', 'totalCost')
       .addSelect('ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100)', 'costUsedInPercentage')
       .leftJoin(Job, 'j', 't.id = j.taskId')
-      .where('EXTRACT(EPOCH FROM (j.endTime - j.startTime)) >= :minDuration OR (j.endTime IS NULL AND j.startTime IS NULL)', { minDuration: 15 * 60 })
+      .where('EXTRACT(EPOCH FROM (j.endTime - j.startTime)) >= :minDuration OR j.id IS NULL', { minDuration: 15 * 60 })
       .groupBy('t.id, t.title')
       .orderBy('t.id', 'ASC');
 
@@ -46,7 +46,8 @@ export class TasksService {
       } else if (params.costUsedInPercentage.to && params.costUsedInPercentage.to > 0) {
         query.addGroupBy('t.cost');
         query.having(
-          'ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100) <= :to',
+          'ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100) <= :to ' +
+          'OR ROUND(SUM(EXTRACT(EPOCH FROM ("j"."endTime" - "j"."startTime")) / 3600 * "j"."rate") / "t"."cost" * 100) IS NULL',
           { to: params.costUsedInPercentage.to },
         );
       } else if (params.costUsedInPercentage.from && params.costUsedInPercentage.from > 0) {
