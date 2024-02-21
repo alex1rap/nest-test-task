@@ -4,6 +4,8 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task, TaskStatus } from './entities/task.entity';
 import { EntityManager } from 'typeorm';
 import { isString } from '@nestjs/common/utils/shared.utils';
+import { Job } from '../jobs/entities/job.entity';
+import { TaskFilterDto } from './dto/task-filter.dto';
 
 // ToDo: Add validation for title
 // ToDo: Add filter by percentage of cost used
@@ -22,15 +24,42 @@ export class TasksService {
     return task;
   }
 
-  async findAll() {
-    return (await this.entityManager.find(Task)).map((task: Task) => {
-      return task.recalculateCosts();
-    });
+  async findAll(params: TaskFilterDto = undefined) {
+    const query = this.entityManager.createQueryBuilder(Task, 't')
+      .select('t.*, ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate))', 'total_cost')
+      .addSelect('ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100)', 'costUsedInPercentage')
+      .innerJoin(Job, 'j', 't.id = j.taskId')
+      .where('EXTRACT(EPOCH FROM (j.endTime - j.startTime)) >= :minDuration', { minDuration: 15 * 60 })
+      .groupBy('t.id, t.title');
+    if (params && params.costUsedInPercentage !== undefined) {
+      if (params.costUsedInPercentage.from !== undefined && params.costUsedInPercentage.to !== undefined) {
+        query.addGroupBy('t.cost');
+        query.having(
+          'ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100) <= :to AND ' +
+          'ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100) >= :from',
+          { from: params.costUsedInPercentage.from, to: params.costUsedInPercentage.to },
+        );
+      } else if (params.costUsedInPercentage.to !== undefined) {
+        query.addGroupBy('t.cost');
+        query.having(
+          'ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100) <= :to',
+          { to: params.costUsedInPercentage.to },
+        );
+      } else if (params.costUsedInPercentage.from !== undefined) {
+        query.addGroupBy('t.cost');
+        query.having(
+          'ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100) >= :from',
+          { from: params.costUsedInPercentage.from },
+        );
+      }
+    }
+    return query.getRawMany();
   }
 
   async findOne(id: number) {
     const task: Task | any = await this.entityManager.findOne(Task, {
       where: { id },
+      join: this.getJoinOptions(),
     });
     if (!task) {
       throw new HttpException('Task not found', 404);
@@ -48,7 +77,7 @@ export class TasksService {
 
   async remove(id: number) {
     const task = await this.findOne(id);
-    await this.entityManager.remove(Task, task);
+    await task.destroy();
     return `Task #${id} was removed`;
   }
 
@@ -56,5 +85,15 @@ export class TasksService {
     return this.entityManager.findOne(Task, {
       where: { title },
     });
+  }
+
+  getJoinOptions() {
+    return {
+      alias: 'task',
+      leftJoinAndSelect: {
+        jobs: 'task.jobs',
+        users: 'jobs.user',
+      },
+    };
   }
 }

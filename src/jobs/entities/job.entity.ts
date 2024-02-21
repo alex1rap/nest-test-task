@@ -13,14 +13,17 @@ export class Job {
   @ManyToOne(() => Task, (task) => task.jobs)
   task: Task;
 
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  started_at: Date;
+  @Column('int', { default: 0 })
+  rate: number;
 
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  ended_at: Date;
+  @Column('timestamptz', { default: () => 'CURRENT_TIMESTAMP' })
+  startTime: Date;
+
+  @Column('timestamptz', { default: () => 'CURRENT_TIMESTAMP' })
+  endTime: Date;
 
   getCost(): number {
-    const hours = (this.ended_at.getTime() - this.started_at.getTime()) / 1000 / 60 / 60;
+    const hours = (this.endTime.getTime() - this.startTime.getTime()) / 1000 / 60 / 60;
     return this.user.rate * hours;
   }
 }

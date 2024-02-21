@@ -14,5 +14,5 @@ export class CreateUserDto {
   name: string;
 
   @IsInt()
-  cost: number;
+  rate: number;
 }

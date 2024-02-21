@@ -42,22 +42,23 @@ export class Task {
   @Column('timestamp', { nullable: true })
   updatedAt: Date | null;
 
-  costUsed: number = 0;
+  costUsed: number | undefined = undefined;
 
   getCostUsed(): number {
+    console.log({ jobs: this.jobs });
     if (!this.jobs || this.jobs.length === 0) {
       return 0;
     }
     return this.jobs.reduce((acc, job) => acc + job.getCost(), 0);
   }
 
-  costUsedPercentage: number = 0;
+  costUsedPercentage: number | undefined = undefined;
 
   getCostUsedInPercentages(): number {
     return (this.getCostUsed() / this.cost) * 100;
   }
 
-  costLeft: number = 0;
+  costLeft: number | undefined = undefined;
 
   getCostLeft(): number {
     return this.cost - this.getCostUsed();
@@ -69,6 +70,9 @@ export class Task {
   }
 
   recalculateCosts() {
+    if (!this.jobs || this.jobs.length === 0) {
+      return this;
+    }
     this.costUsed = this.getCostUsed();
     this.costUsedPercentage = this.getCostUsedInPercentages();
     this.costLeft = this.getCostLeft();

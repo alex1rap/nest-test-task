@@ -37,7 +37,7 @@ export class UsersService {
     if (isNaN(id)) {
       throw new HttpException('Invalid id', 400);
     }
-    const user = await this.entityManager.findOne(User, {
+    const user: User | any = await this.entityManager.findOne(User, {
       where: { id },
     });
     if (!user) {
@@ -56,7 +56,7 @@ export class UsersService {
 
   async remove(id: number) {
     const user = await this.findOne(id);
-    await this.entityManager.remove(User, user);
+    await user.destroy();
     return `User #${id} was removed`;
   }
 
