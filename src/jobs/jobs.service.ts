@@ -116,7 +116,7 @@ export class JobsService {
 
   async remove(id: number) {
     const job = await this.findOne(id);
-    await job.destroy();
+    await this.entityManager.remove(job);
     return `Job #${id} was removed`;
   }
 }
