@@ -26,9 +26,8 @@ export class TasksService {
 
   async findAll(params: TaskFilterDto = undefined) {
     const query = this.entityManager.createQueryBuilder(Task, 't')
-      .select('t.*, ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate))', 'total_cost')
+      .select('t.*, ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate))', 'totalCost')
       .addSelect('ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100)', 'costUsedInPercentage')
-      .addSelect('COUNT(j.id)', 'jobsCount')
       .innerJoin(Job, 'j', 't.id = j.taskId')
       .where('EXTRACT(EPOCH FROM (j.endTime - j.startTime)) >= :minDuration', { minDuration: 15 * 60 })
       .groupBy('t.id, t.title');
