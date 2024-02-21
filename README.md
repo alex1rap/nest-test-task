@@ -55,4 +55,4 @@ docker-compose up
 ```
 
 Колекція для Postman:
-[Скачати](/Tasks.postman_collection.json "Tasks.postman_collection.json")
+[Відкрити](/Tasks.postman_collection.json "Tasks.postman_collection.json")
