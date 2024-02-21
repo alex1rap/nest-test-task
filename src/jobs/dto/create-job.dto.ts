@@ -1,4 +1,4 @@
-import { IsDate, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsDate, IsEmpty, IsInt, IsString } from 'class-validator';
 
 export class CreateJobDto {
   @IsString()
@@ -8,13 +8,17 @@ export class CreateJobDto {
   description: string;
 
   @IsInt()
-  rate: number;
+  taskId: number;
 
-  @IsOptional()
-  @IsDate()
-  startTime: Date | null = null;
+  @IsInt()
+  userId: number;
 
-  @IsOptional()
+  @IsEmpty()
+  rate: number; // rate is not defined by the user
+
   @IsDate()
-  endTime: Date | null = null;
+  startTime: Date;
+
+  @IsDate()
+  endTime: Date;
 }

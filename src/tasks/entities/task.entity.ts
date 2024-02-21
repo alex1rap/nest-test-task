@@ -45,7 +45,6 @@ export class Task {
   costUsed: number | undefined = undefined;
 
   getCostUsed(): number {
-    console.log({ jobs: this.jobs });
     if (!this.jobs || this.jobs.length === 0) {
       return 0;
     }

@@ -28,15 +28,16 @@ export class TasksService {
     const query = this.entityManager.createQueryBuilder(Task, 't')
       .select('t.*, ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate))', 'total_cost')
       .addSelect('ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100)', 'costUsedInPercentage')
+      .addSelect('COUNT(j.id)', 'jobsCount')
       .innerJoin(Job, 'j', 't.id = j.taskId')
       .where('EXTRACT(EPOCH FROM (j.endTime - j.startTime)) >= :minDuration', { minDuration: 15 * 60 })
       .groupBy('t.id, t.title');
+
     if (params && params.costUsedInPercentage !== undefined) {
       if (params.costUsedInPercentage.from !== undefined && params.costUsedInPercentage.to !== undefined) {
         query.addGroupBy('t.cost');
         query.having(
-          'ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100) <= :to AND ' +
-          'ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100) >= :from',
+          'ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100) BETWEEN :from AND :to',
           { from: params.costUsedInPercentage.from, to: params.costUsedInPercentage.to },
         );
       } else if (params.costUsedInPercentage.to !== undefined) {
@@ -53,13 +54,14 @@ export class TasksService {
         );
       }
     }
+
     return query.getRawMany();
   }
 
   async findOne(id: number) {
     const task: Task | any = await this.entityManager.findOne(Task, {
       where: { id },
-      join: this.getJoinOptions(),
+      relations: ['jobs'],
     });
     if (!task) {
       throw new HttpException('Task not found', 404);
@@ -85,15 +87,5 @@ export class TasksService {
     return this.entityManager.findOne(Task, {
       where: { title },
     });
-  }
-
-  getJoinOptions() {
-    return {
-      alias: 'task',
-      leftJoinAndSelect: {
-        jobs: 'task.jobs',
-        users: 'jobs.user',
-      },
-    };
   }
 }

@@ -1,6 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Task } from '../../tasks/entities/task.entity';
+import { isString } from '@nestjs/common/utils/shared.utils';
 
 @Entity()
 export class Job {
@@ -23,7 +24,26 @@ export class Job {
   endTime: Date;
 
   getCost(): number {
+    console.log({
+      startTime: this.startTime,
+      endTime: this.endTime,
+      rate: this.rate,
+    });
+    if (!this.startTime || !this.endTime) {
+      return 0;
+    }
+    if (isString(this.startTime)) {
+      this.startTime = new Date(this.startTime);
+    }
+    if (isString(this.endTime)) {
+      this.endTime = new Date(this.endTime);
+    }
     const hours = (this.endTime.getTime() - this.startTime.getTime()) / 1000 / 60 / 60;
-    return this.user.rate * hours;
+    return this.rate * hours;
+  }
+
+  constructor(job: Partial<Job>) {
+    // noinspection TypeScriptValidateTypes
+    Object.assign(this, job);
   }
 }
