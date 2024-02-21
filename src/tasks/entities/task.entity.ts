@@ -42,13 +42,22 @@ export class Task {
   @Column('timestamp', { nullable: true })
   updatedAt: Date | null;
 
+  costUsed: number = 0;
+
   getCostUsed(): number {
+    if (!this.jobs || this.jobs.length === 0) {
+      return 0;
+    }
     return this.jobs.reduce((acc, job) => acc + job.getCost(), 0);
   }
+
+  costUsedPercentage: number = 0;
 
   getCostUsedInPercentages(): number {
     return (this.getCostUsed() / this.cost) * 100;
   }
+
+  costLeft: number = 0;
 
   getCostLeft(): number {
     return this.cost - this.getCostUsed();
@@ -57,5 +66,12 @@ export class Task {
   constructor(task: Partial<Task>) {
     // noinspection TypeScriptValidateTypes
     Object.assign(this, task);
+  }
+
+  recalculateCosts() {
+    this.costUsed = this.getCostUsed();
+    this.costUsedPercentage = this.getCostUsedInPercentages();
+    this.costLeft = this.getCostLeft();
+    return this;
   }
 }

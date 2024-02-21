@@ -23,17 +23,19 @@ export class TasksService {
   }
 
   async findAll() {
-    return await this.entityManager.find(Task);
+    return (await this.entityManager.find(Task)).map((task: Task) => {
+      return task.recalculateCosts();
+    });
   }
 
   async findOne(id: number) {
-    const task = await this.entityManager.findOne(Task, {
+    const task: Task | any = await this.entityManager.findOne(Task, {
       where: { id },
     });
     if (!task) {
       throw new HttpException('Task not found', 404);
     }
-    return task;
+    return task.recalculateCosts();
   }
 
   async update(id: number, updateTaskDto: UpdateTaskDto) {
