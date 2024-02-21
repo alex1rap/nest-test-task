@@ -30,11 +30,32 @@ export class Task {
   @OneToMany(() => Job, (job) => job.task)
   jobs: Job[];
 
+  @Column('timestamp', { nullable: true })
+  startTime: Date | null;
+
+  @Column('timestamp', { nullable: true })
+  endTime: Date | null;
+
+  @Column('timestamp', { nullable: true })
+  createdAt: Date | null;
+
+  @Column('timestamp', { nullable: true })
+  updatedAt: Date | null;
+
   getCostUsed(): number {
     return this.jobs.reduce((acc, job) => acc + job.getCost(), 0);
   }
 
   getCostUsedInPercentages(): number {
     return (this.getCostUsed() / this.cost) * 100;
+  }
+
+  getCostLeft(): number {
+    return this.cost - this.getCostUsed();
+  }
+
+  constructor(task: Partial<Task>) {
+    // noinspection TypeScriptValidateTypes
+    Object.assign(this, task);
   }
 }
