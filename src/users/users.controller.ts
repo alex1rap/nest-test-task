@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ValidationPipe } from '../validation.pipe';
 
 @Controller('users')
 export class UsersController {
@@ -9,7 +10,7 @@ export class UsersController {
   }
 
   @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
     return await this.usersService.create(createUserDto);
   }
 
@@ -24,7 +25,10 @@ export class UsersController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  async update(
+    @Param('id') id: string,
+    @Body(new ValidationPipe()) updateUserDto: UpdateUserDto,
+  ) {
     return await this.usersService.update(+id, updateUserDto);
   }
 
