@@ -29,23 +29,27 @@ export class TasksService {
       .select('t.*, ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate))', 'totalCost')
       .addSelect('ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100)', 'costUsedInPercentage')
       .leftJoin(Job, 'j', 't.id = j.taskId')
-      .where('EXTRACT(EPOCH FROM (j.endTime - j.startTime)) >= :minDuration', { minDuration: 15 * 60 })
-      .groupBy('t.id, t.title');
+      .where('EXTRACT(EPOCH FROM (j.endTime - j.startTime)) >= :minDuration OR (j.endTime IS NULL AND j.startTime IS NULL)', { minDuration: 15 * 60 })
+      .groupBy('t.id, t.title')
+      .orderBy('t.id', 'ASC');
 
-    if (params && params.costUsedInPercentage !== undefined) {
-      if (params.costUsedInPercentage.from !== undefined && params.costUsedInPercentage.to !== undefined) {
+    if (params && params.costUsedInPercentage) {
+      if (
+        params.costUsedInPercentage.from && params.costUsedInPercentage.from > 0
+        && params.costUsedInPercentage.to && params.costUsedInPercentage.to > 0
+      ) {
         query.addGroupBy('t.cost');
         query.having(
           'ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100) BETWEEN :from AND :to',
           { from: params.costUsedInPercentage.from, to: params.costUsedInPercentage.to },
         );
-      } else if (params.costUsedInPercentage.to !== undefined) {
+      } else if (params.costUsedInPercentage.to && params.costUsedInPercentage.to > 0) {
         query.addGroupBy('t.cost');
         query.having(
           'ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100) <= :to',
           { to: params.costUsedInPercentage.to },
         );
-      } else if (params.costUsedInPercentage.from !== undefined) {
+      } else if (params.costUsedInPercentage.from && params.costUsedInPercentage.from > 0) {
         query.addGroupBy('t.cost');
         query.having(
           'ROUND(SUM(EXTRACT(EPOCH FROM (j.endTime - j.startTime)) / 3600 * j.rate) / t.cost * 100) >= :from',
