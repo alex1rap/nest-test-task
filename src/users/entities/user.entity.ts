@@ -15,18 +15,26 @@ export class User {
   @Column('varchar', { length: 32 })
   password: string;
 
+  @Column('varchar', { length: 32 })
+  name: string;
+
   @Column('int', { default: 0 })
   rate: number;
 
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  created_at: Date;
+  createdAt: Date;
 
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  updated_at: Date;
+  updatedAt: Date;
 
   @Column('timestamp', { nullable: true })
-  deleted_at: Date;
+  deletedAt: Date;
 
   @OneToMany(() => Job, (job) => job.user)
   jobs: Job[];
+
+  constructor(user: Partial<User>) {
+    // noinspection TypeScriptValidateTypes
+    Object.assign(this, user);
+  }
 }
